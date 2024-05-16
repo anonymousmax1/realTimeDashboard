@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://cdn.plot.ly/plotly-2.32.0.min.js"
+      charset="utf-8"
+    ></script>
+    <title>Document</title>
+  </head>
+  <body>
+    <h2
+      id="status"
+      style="
+        background-color: #222222;
+        color: white;
+        padding: 20px;
+        width: min-content;
+      "
+    >
+      Disconnected
+    </h2>
+
+    <h1>Hello world</h1>
+    <div id="tester"></div>
+
+    <script type="text/javascript">
+      let url = `ws://${window.location.host}/ws/dash/`;
+      const dashboardSockets = new WebSocket(url);
+      const status = document.getElementById("status");
+
+      dashboardSockets.onopen = function () {
+        console.log("Conexión establecida.");
+
+        changeStatusbanner("Connected", "#00cd55");
+      };
+
+      dashboardSockets.onerror = function (error) {
+        changeStatusbanner("Error", "#ff1e1e");
+      };
+
+      dashboardSockets.onclose = function () {
+        changeStatusbanner("Disconnected", "#222222");
+      };
+
+      dashboardSockets.onmessage = function (e) {
+        try {
+          let data = JSON.parse(e.data);
+          console.log("Datos recibidos:", data);
+          generatePlot(data.data);
+        } catch (error) {
+          console.error("Error al parsear datos: ", error);
+        }
+      };
+
+      function generatePlot(data) {
+        console.log(data);
+        let x = [];
+        let y = [];
+
+        data.forEach((item) => {
+          x.push(item.label);
+          y.push(item.value);
+        });
+
+        let plotData = {
+          x: x,
+          y: y,
+          type: "bar",
+        };
+
+        console.log(plotData);
+
+        Plotly.newPlot("tester", [plotData]);
+      }
+
+      function changeStatusbanner(text, color) {
+        status.innerText = text;
+        status.style.backgroundColor = color;
+      }
+    </script>
+  </body>
+</html>

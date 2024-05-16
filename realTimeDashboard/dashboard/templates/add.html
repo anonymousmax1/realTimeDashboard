@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  
+  <body>
+    <h2
+      id="status"
+      style="
+        background-color: #222222;
+        color: white;
+        padding: 20px;
+        width: min-content;
+      "
+    >
+      Disconnected
+    </h2>
+
+    <form id="form">
+      <input type="text" name="label" placeholder="Label" />
+      <input type="text" name="value" placeholder="Value" />
+      <button type="submit">Enviar</button>
+    </form>
+
+    <script type="text/javascript">
+      let url = `ws://${window.location.host}/ws/dash/`;
+      const form = document.getElementById("form");
+      const status = document.getElementById("status");
+      const dashboardSockets = new WebSocket(url);
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        let label = e.target.label.value;
+        let value = e.target.value.value;
+        dashboardSockets.send(
+          JSON.stringify({
+            label: label,
+            value: value,
+          })
+        );
+
+        form.reset();
+      });
+
+      dashboardSockets.onopen = function () {
+        changeStatusbanner("Connected", "#00cd55");
+      };
+
+      dashboardSockets.onerror = function (error) {
+        changeStatusbanner("Error", "#ff1e1e");
+      };
+
+      dashboardSockets.onclose = function (){
+        changeStatusbanner("Disconnected", "#222222");
+      }
+
+      dashboardSockets.onmessage = function (e) {
+        try {
+          let data = JSON.parse(e.data);
+          console.log("Datos recibidos:", data);
+        } catch (error) {
+          console.error("Error al parsear datos: ", error);
+        }
+      };
+
+      function changeStatusbanner(text, color) {
+        status.innerText = text;
+        status.style.backgroundColor = color;
+      }
+    </script>
+  </body>
+</html>
